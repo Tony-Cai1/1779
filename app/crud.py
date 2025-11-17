@@ -31,6 +31,11 @@ def list_books(db: Session):
     return db.query(models.Book).all()
 
 
+def get_book(db: Session, book_id: int):
+    book = db.query(models.Book).get(book_id)
+    return book
+
+
 def update_book(db: Session, book_id: int, book_in: schemas.BookUpdate):
     book = db.query(models.Book).get(book_id)
     if not book:

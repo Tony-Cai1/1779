@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lms-seed
+  labels:
+    app: lms-seed
+spec:
+  template:
+    metadata:
+      labels:
+        app: lms-seed
+    spec:
+      # Image pull secret for DigitalOcean Container Registry
+      # Update the name to match your registry secret (e.g., registry-lms-registry)
+      imagePullSecrets:
+      - name: registry-lms-registry-1779  # Update this to match your registry name
+      restartPolicy: OnFailure
+      containers:
+      - name: seed
+        image: registry.digitalocean.com/lms-registry-1779/lms-api:latest  # Update with your image registry
+        command: ["python", "seed.py"]
+        env:
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: lms-config
+              key: DB_USER
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: lms-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: lms-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: lms-config
+              key: DB_NAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lms-secret
+              key: DB_PASSWORD
+

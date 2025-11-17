@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lms-config
+  labels:
+    app: lms-api
+data:
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "lms_db"
+  DB_USER: "lms_user"
+  # DB_PASSWORD is stored in Secret
+  # SECRET_KEY is stored in Secret
+

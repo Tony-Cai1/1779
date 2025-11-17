@@ -64,6 +64,15 @@ def get_books(db: Session = Depends(get_db)):
     return crud.list_books(db)
 
 
+@app.get("/books/{book_id}", response_model=schemas.BookOut)
+def get_book(book_id: int, db: Session = Depends(get_db)):
+    """Get a single book by its ID, including availability status"""
+    book = crud.get_book(db, book_id)
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+    return book
+
+
 @app.post("/books/", response_model=schemas.BookOut)
 def create_book(
     book_in: schemas.BookCreate,
