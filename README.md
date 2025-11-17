@@ -503,6 +503,7 @@ doctl registry delete lms-registry-1779
 - [DigitalOcean Kubernetes Documentation](https://docs.digitalocean.com/products/kubernetes/)
 - [DOCR Documentation](https://docs.digitalocean.com/products/container-registry/)
 - [doctl CLI Reference](https://docs.digitalocean.com/reference/doctl/)
+- **[Remote Cluster Management Guide](REMOTE_ACCESS.md)** - How to access and manage the cluster from other machines
 
 ## Testing
 
@@ -860,5 +861,4 @@ Full API documentation available at `/docs` endpoint.
 
 ## Contributing
 
-[Add contributing guidelines here]
-git 
+[Add contributing guidelines here] 
