@@ -1,4 +1,5 @@
 from typing import List, Optional
+import time
 
 from fastapi import (
     FastAPI,
@@ -8,10 +9,13 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
     Query,
+    Request,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram, Gauge
 
 from .db import Base, engine, get_db
 from . import models, schemas, crud, auth
@@ -21,6 +25,65 @@ from . import models, schemas, crud, auth
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Library Management System")
+
+# Initialize Prometheus Instrumentator
+instrumentator = Instrumentator()
+instrumentator.instrument(app).expose(app)
+
+# Custom metrics for API usage tracking
+api_request_counter = Counter(
+    'lms_api_requests_total',
+    'Total number of API requests',
+    ['method', 'endpoint', 'status_code']
+)
+
+api_request_duration = Histogram(
+    'lms_api_request_duration_seconds',
+    'API request duration in seconds',
+    ['method', 'endpoint']
+)
+
+api_endpoint_counter = Counter(
+    'lms_api_endpoint_requests_total',
+    'Total requests per endpoint',
+    ['endpoint', 'method']
+)
+
+active_websocket_connections = Gauge(
+    'lms_websocket_connections_active',
+    'Number of active WebSocket connections'
+)
+
+# Middleware to track API metrics
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start_time = time.time()
+    
+    response = await call_next(request)
+    
+    # Record metrics
+    duration = time.time() - start_time
+    endpoint = request.url.path
+    method = request.method
+    status_code = response.status_code
+    
+    api_request_counter.labels(
+        method=method,
+        endpoint=endpoint,
+        status_code=status_code
+    ).inc()
+    
+    api_request_duration.labels(
+        method=method,
+        endpoint=endpoint
+    ).observe(duration)
+    
+    api_endpoint_counter.labels(
+        endpoint=endpoint,
+        method=method
+    ).inc()
+    
+    return response
 
 
 @app.get("/health")
@@ -229,11 +292,13 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
+        active_websocket_connections.set(len(self.active_connections))
         print(f"Admin WS connected. Total: {len(self.active_connections)}")
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
+            active_websocket_connections.set(len(self.active_connections))
             print(f"Admin WS disconnected. Total: {len(self.active_connections)}")
 
     async def broadcast(self, message: dict):
