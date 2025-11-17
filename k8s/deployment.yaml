@@ -13,6 +13,10 @@ spec:
     metadata:
       labels:
         app: lms-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
     spec:
       # Image pull secret for DigitalOcean Container Registry
       # Update the name to match your registry secret (e.g., registry-lms-registry)

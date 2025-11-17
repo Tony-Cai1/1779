@@ -1,0 +1,336 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  labels:
+    app: grafana
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'LMS Dashboards'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-configs
+  labels:
+    app: grafana
+data:
+  lms-api-dashboard.json: |
+    {
+      "title": "LMS API Metrics",
+        "tags": ["lms", "api"],
+        "timezone": "browser",
+        "schemaVersion": 27,
+        "version": 1,
+        "refresh": "10s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "API Request Total",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "lms_api_requests_total",
+                "legendFormat": "{{method}} {{endpoint}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Total Requests"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 2,
+            "title": "API Request Duration (Average)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "lms_api_request_duration_seconds_sum / lms_api_request_duration_seconds_count",
+                "legendFormat": "{{method}} {{endpoint}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "s", "label": "Duration"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Total Requests by Endpoint",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(lms_api_endpoint_requests_total) by (endpoint)",
+                "legendFormat": "{{endpoint}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Total Requests"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Total HTTP Status Codes",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(lms_api_requests_total) by (status_code)",
+                "legendFormat": "{{status_code}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Total Requests"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Active WebSocket Connections",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+            "targets": [
+              {
+                "expr": "lms_websocket_connections_active",
+                "legendFormat": "Active Connections",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Connections"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 6,
+            "title": "FastAPI Request Total",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+            "targets": [
+              {
+                "expr": "http_requests_total",
+                "legendFormat": "{{method}} {{handler}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Total Requests"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 7,
+            "title": "API Calls Distribution by Endpoint",
+            "type": "piechart",
+            "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24},
+            "targets": [
+              {
+                "expr": "sum(lms_api_endpoint_requests_total) by (endpoint)",
+                "legendFormat": "{{endpoint}}",
+                "refId": "A"
+              }
+            ],
+            "options": {
+              "pieType": "pie",
+              "tooltip": {
+                "mode": "single"
+              },
+              "legend": {
+                "displayMode": "table",
+                "placement": "right",
+                "values": ["value", "percent"]
+              }
+            }
+          },
+          {
+            "id": 8,
+            "title": "API Calls Distribution by HTTP Method",
+            "type": "piechart",
+            "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24},
+            "targets": [
+              {
+                "expr": "sum(lms_api_requests_total) by (method)",
+                "legendFormat": "{{method}}",
+                "refId": "A"
+              }
+            ],
+            "options": {
+              "pieType": "pie",
+              "tooltip": {
+                "mode": "single"
+              },
+              "legend": {
+                "displayMode": "table",
+                "placement": "right",
+                "values": ["value", "percent"]
+              }
+            }
+          },
+          {
+            "id": 9,
+            "title": "API Calls Distribution by Status Code",
+            "type": "piechart",
+            "gridPos": {"h": 8, "w": 8, "x": 16, "y": 24},
+            "targets": [
+              {
+                "expr": "sum(lms_api_requests_total) by (status_code)",
+                "legendFormat": "{{status_code}}",
+                "refId": "A"
+              }
+            ],
+            "options": {
+              "pieType": "pie",
+              "tooltip": {
+                "mode": "single"
+              },
+              "legend": {
+                "displayMode": "table",
+                "placement": "right",
+                "values": ["value", "percent"]
+              }
+            }
+          }
+        ]
+    }
+  cluster-usage-dashboard.json: |
+    {
+      "title": "Kubernetes Cluster Usage",
+        "tags": ["kubernetes", "cluster"],
+        "timezone": "browser",
+        "schemaVersion": 27,
+        "version": 1,
+        "refresh": "10s",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Node CPU Usage",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (instance) * 100)",
+                "legendFormat": "{{instance}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "percent", "label": "CPU %", "max": 100, "min": 0},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Node Memory Usage",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+                "legendFormat": "{{instance}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "percent", "label": "Memory %", "max": 100, "min": 0},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Node Network I/O",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(rate(node_network_receive_bytes_total[1h])) by (instance) / 1024 / 1024",
+                "legendFormat": "{{instance}} - RX",
+                "refId": "A"
+              },
+              {
+                "expr": "sum(rate(node_network_transmit_bytes_total[1h])) by (instance) / 1024 / 1024",
+                "legendFormat": "{{instance}} - TX",
+                "refId": "B"
+              }
+            ],
+            "yaxes": [
+              {"format": "mbytes", "label": "Network MB/s"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Pod Count by Deployment",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "count(kube_pod_info{namespace=\"default\"}) by (created_by_kind, created_by_name)",
+                "legendFormat": "{{created_by_kind}}/{{created_by_name}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Pods"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Node Disk I/O",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+            "targets": [
+              {
+                "expr": "sum(rate(node_disk_read_bytes_total[1h])) by (instance) / 1024 / 1024",
+                "legendFormat": "{{instance}} - Read",
+                "refId": "A"
+              },
+              {
+                "expr": "sum(rate(node_disk_written_bytes_total[1h])) by (instance) / 1024 / 1024",
+                "legendFormat": "{{instance}} - Write",
+                "refId": "B"
+              }
+            ],
+            "yaxes": [
+              {"format": "mbytes", "label": "Disk MB/s"},
+              {"format": "short"}
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Node Memory Usage",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+            "targets": [
+              {
+                "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+                "legendFormat": "Memory Usage %",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "percent", "label": "Memory %", "max": 100, "min": 0},
+              {"format": "short"}
+            ]
+          }
+        ]
+    }
+
