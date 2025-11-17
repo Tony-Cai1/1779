@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
+import os
 
 import hashlib
 from fastapi import Depends, HTTPException, status
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .db import get_db
 
-SECRET_KEY = "replace_this_with_real_secret"  # change later if you like
+SECRET_KEY = os.getenv("SECRET_KEY", "replace_this_with_real_secret")  # change later if you like
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
