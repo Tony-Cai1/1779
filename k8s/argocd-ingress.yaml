@@ -1,0 +1,36 @@
+# ArgoCD Ingress - must be in the same namespace as argocd-server service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-ingress
+  namespace: argocd
+  annotations:
+    # NGINX Ingress Controller annotations
+    # WebSocket support for ArgoCD (required for real-time updates)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Enable CORS if needed
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    # Force HTTP (prevent HTTPS redirects)
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    # Tell ArgoCD we're using HTTP (critical for preventing redirects)
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Forwarded-Proto: http";
+      more_set_headers "X-Forwarded-Scheme: http";
+spec:
+  ingressClassName: nginx
+  rules:
+  # ArgoCD - replace with your Ingress IP
+  - host: argocd.157.230.69.194.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 80
+
