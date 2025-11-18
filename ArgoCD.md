@@ -77,7 +77,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 ```
 
 Save this password - you'll need it to log in.
-JMh3okaSmljZlDrS
+
 
 ### Access ArgoCD UI
 
