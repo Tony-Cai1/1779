@@ -333,4 +333,140 @@ data:
           }
         ]
     }
+  logs-dashboard.json: |
+    {
+      "title": "Application Logs",
+      "tags": ["logs", "loki"],
+      "timezone": "browser",
+      "schemaVersion": 27,
+      "version": 1,
+      "refresh": "10s",
+      "panels": [
+        {
+          "id": 1,
+          "title": "All Application Logs",
+          "type": "logs",
+          "gridPos": {"h": 12, "w": 24, "x": 0, "y": 0},
+          "datasource": "Loki",
+          "targets": [
+            {
+              "expr": "{app=\"lms-api\"}",
+              "refId": "A",
+              "legendFormat": "{{pod}}"
+            }
+          ],
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": true,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          }
+        },
+        {
+          "id": 2,
+          "title": "Error Logs",
+          "type": "logs",
+          "gridPos": {"h": 10, "w": 12, "x": 0, "y": 12},
+          "datasource": "Loki",
+          "targets": [
+            {
+              "expr": "{app=\"lms-api\"} |= \"error\" | json",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": true,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          }
+        },
+        {
+          "id": 3,
+          "title": "Logs by Pod",
+          "type": "logs",
+          "gridPos": {"h": 10, "w": 12, "x": 12, "y": 12},
+          "datasource": "Loki",
+          "targets": [
+            {
+              "expr": "{app=\"lms-api\"}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          }
+        },
+        {
+          "id": 4,
+          "title": "All Namespace Logs",
+          "type": "logs",
+          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 22},
+          "datasource": "Loki",
+          "targets": [
+            {
+              "expr": "{namespace=\"default\"}",
+              "refId": "A"
+            }
+          ],
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": true,
+            "prettifyLogMessage": false,
+            "showCommonLabels": true,
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          }
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "pod",
+            "type": "query",
+            "datasource": "Loki",
+            "query": "label_values(pod)",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "includeAll": true,
+            "multi": true,
+            "refresh": 1
+          },
+          {
+            "name": "container",
+            "type": "query",
+            "datasource": "Loki",
+            "query": "label_values(container)",
+            "current": {
+              "selected": false,
+              "text": "All",
+              "value": "$__all"
+            },
+            "includeAll": true,
+            "multi": true,
+            "refresh": 1
+          }
+        ]
+      }
+    }
 
