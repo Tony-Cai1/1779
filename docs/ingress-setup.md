@@ -1,4 +1,4 @@
-# Ingress Setup Guide
+# Ingres Setup Guide
 
 This guide explains how to set up Ingress for all your services (LMS API, Grafana, Prometheus, ArgoCD) to replace multiple LoadBalancers with a single, cost-effective solution.
 
