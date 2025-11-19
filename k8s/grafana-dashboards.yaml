@@ -41,7 +41,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
             "targets": [
               {
-                "expr": "sum by (method, endpoint, status_code) (lms_api_requests_total)",
+                "expr": "sum by (method, endpoint, status_code) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}} {{endpoint}}",
                 "refId": "A"
               }
@@ -58,7 +58,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
             "targets": [
               {
-                "expr": "sum by (method, endpoint) (lms_api_request_duration_seconds_sum) / sum by (method, endpoint) (lms_api_request_duration_seconds_count)",
+                "expr": "sum by (method, endpoint) (lms_api_request_duration_seconds_sum{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"}) / sum by (method, endpoint) (lms_api_request_duration_seconds_count{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}} {{endpoint}}",
                 "refId": "A"
               }
@@ -75,7 +75,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
             "targets": [
               {
-                "expr": "sum by (endpoint) (lms_api_endpoint_requests_total)",
+                "expr": "sum by (endpoint) (lms_api_endpoint_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{endpoint}}",
                 "refId": "A"
               }
@@ -92,7 +92,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
             "targets": [
               {
-                "expr": "sum by (status_code) (lms_api_requests_total)",
+                "expr": "sum by (status_code) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{status_code}}",
                 "refId": "A"
               }
@@ -126,7 +126,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
             "targets": [
               {
-                "expr": "sum by (method, handler) (http_requests_total)",
+                "expr": "sum by (method, handler) (http_requests_total{handler=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}} {{handler}}",
                 "refId": "A"
               }
@@ -143,7 +143,7 @@ data:
             "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24},
             "targets": [
               {
-                "expr": "sum by (endpoint) (lms_api_endpoint_requests_total)",
+                "expr": "sum by (endpoint) (lms_api_endpoint_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{endpoint}}",
                 "refId": "A"
               }
@@ -167,7 +167,7 @@ data:
             "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24},
             "targets": [
               {
-                "expr": "sum by (method) (lms_api_requests_total)",
+                "expr": "sum by (method) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}}",
                 "refId": "A"
               }
@@ -191,7 +191,7 @@ data:
             "gridPos": {"h": 8, "w": 8, "x": 16, "y": 24},
             "targets": [
               {
-                "expr": "sum by (status_code) (lms_api_requests_total)",
+                "expr": "sum by (status_code) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{status_code}}",
                 "refId": "A"
               }
@@ -218,13 +218,18 @@ data:
                 "expr": "sum by (method, status_code) (lms_api_suspicious_requests_total) or vector(0)",
                 "legendFormat": "{{method}} - {{status_code}}",
                 "refId": "A"
+              },
+              {
+                "expr": "sum by (method, endpoint, status_code) (lms_api_requests_total{endpoint!~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
+                "legendFormat": "{{method}} {{endpoint}} - {{status_code}}",
+                "refId": "B"
               }
             ],
             "yaxes": [
               {"format": "short", "label": "Suspicious Requests"},
               {"format": "short"}
             ],
-            "description": "Attack/scanner requests filtered from main metrics"
+            "description": "Attack/scanner requests filtered from main metrics. Includes both explicitly marked suspicious requests and any requests to non-legitimate endpoints."
           }
         ]
     }
@@ -350,141 +355,5 @@ data:
             ]
           }
         ]
-    }
-  logs-dashboard.json: |
-    {
-      "title": "Application Logs",
-      "tags": ["logs", "loki"],
-      "timezone": "browser",
-      "schemaVersion": 27,
-      "version": 1,
-      "refresh": "10s",
-      "panels": [
-        {
-          "id": 1,
-          "title": "All Application Logs",
-          "type": "logs",
-          "gridPos": {"h": 12, "w": 24, "x": 0, "y": 0},
-          "datasource": "Loki",
-          "targets": [
-            {
-              "expr": "{app=\"lms-api\"}",
-              "refId": "A",
-              "legendFormat": "{{pod}}"
-            }
-          ],
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": true,
-            "showLabels": true,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          }
-        },
-        {
-          "id": 2,
-          "title": "Error Logs",
-          "type": "logs",
-          "gridPos": {"h": 10, "w": 12, "x": 0, "y": 12},
-          "datasource": "Loki",
-          "targets": [
-            {
-              "expr": "{app=\"lms-api\"} |= \"error\" | json",
-              "refId": "A"
-            }
-          ],
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": true,
-            "showLabels": true,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          }
-        },
-        {
-          "id": 3,
-          "title": "Logs by Pod",
-          "type": "logs",
-          "gridPos": {"h": 10, "w": 12, "x": 12, "y": 12},
-          "datasource": "Loki",
-          "targets": [
-            {
-              "expr": "{app=\"lms-api\"}",
-              "refId": "A"
-            }
-          ],
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": false,
-            "showLabels": true,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          }
-        },
-        {
-          "id": 4,
-          "title": "All Namespace Logs",
-          "type": "logs",
-          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 22},
-          "datasource": "Loki",
-          "targets": [
-            {
-              "expr": "{namespace=\"default\"}",
-              "refId": "A"
-            }
-          ],
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": true,
-            "showLabels": true,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          }
-        }
-      ],
-      "templating": {
-        "list": [
-          {
-            "name": "pod",
-            "type": "query",
-            "datasource": "Loki",
-            "query": "label_values(pod)",
-            "current": {
-              "selected": false,
-              "text": "All",
-              "value": "$__all"
-            },
-            "includeAll": true,
-            "multi": true,
-            "refresh": 1
-          },
-          {
-            "name": "container",
-            "type": "query",
-            "datasource": "Loki",
-            "query": "label_values(container)",
-            "current": {
-              "selected": false,
-              "text": "All",
-              "value": "$__all"
-            },
-            "includeAll": true,
-            "multi": true,
-            "refresh": 1
-          }
-        ]
-      }
     }
 

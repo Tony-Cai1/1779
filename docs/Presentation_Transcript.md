@@ -105,7 +105,19 @@ This ensures optimal resource utilization and handles traffic spikes automatical
 
 ---
 
-## [01:30-02:00] Monitoring & Observability
+## [01:30-01:50] Ingress & nip.io Routing
+
+"Now, **Ingress and nip.io**—this is how we expose our services to the internet."
+
+[Show kubectl get ingress or ingress.yaml]
+
+"Instead of creating separate LoadBalancers for each service, we use Kubernetes Ingress with a single IP address. The Ingress controller routes traffic based on hostnames—so `api` dot our IP dot `nip.io` goes to our API service, `grafana` dot our IP dot `nip.io` goes to Grafana, and so on."
+
+"nip.io is a free DNS service that automatically resolves any hostname containing an IP address back to that IP. This means we get friendly hostnames like `api.157.230.69.194.nip.io` without needing to configure DNS records. One IP address, multiple services—all routed intelligently by the Ingress controller."
+
+---
+
+## [01:50-02:20] Monitoring & Observability
 
 "Finally, **Monitoring and Observability** using Prometheus and Grafana."
 
@@ -147,7 +159,7 @@ All metrics are scraped every 15 seconds, providing real-time visibility into ou
 
 ---
 
-## [02:00-02:05] Summary & Closing
+## [02:20-02:25] Summary & Closing
 
 "In summary, we've demonstrated:
 
@@ -156,6 +168,7 @@ All metrics are scraped every 15 seconds, providing real-time visibility into ou
 ✅ **PostgreSQL with persistent storage** ensuring data durability
 ✅ **Kubernetes orchestration** with automated deployments via ArgoCD
 ✅ **Horizontal Pod Autoscaling** for dynamic scaling
+✅ **Ingress routing** with nip.io for single-IP, multi-service access
 ✅ **Comprehensive monitoring** with Prometheus, Grafana, and Loki
 ✅ **Stateful design** that maintains data across restarts
 
