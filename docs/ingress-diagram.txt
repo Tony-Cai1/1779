@@ -1,0 +1,47 @@
+INGRESS ARCHITECTURE DIAGRAM
+═══════════════════════════════════════════════════════════════
+
+                    INTERNET
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+   api.*.nip.io  grafana.*.nip.io  prometheus.*.nip.io
+        │              │              │
+        └──────────────┼──────────────┘
+                       │
+                       ▼
+        ┌──────────────────────────────┐
+        │   INGRESS CONTROLLER         │
+        │   (NGINX)                    │
+        │   IP: 157.230.69.194         │
+        │                              │
+        │   Hostname-based Routing:    │
+        │   • api.* → API Service      │
+        │   • grafana.* → Grafana      │
+        │   • prometheus.* → Prometheus │
+        └──────────────────────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+        ▼              ▼              ▼
+   ┌─────────┐   ┌─────────┐   ┌─────────┐
+   │   API   │   │ Grafana │   │Prometheus│
+   │ Service │   │ Service │   │ Service  │
+   └────┬────┘   └─────────┘   └─────────┘
+        │
+        ▼
+   ┌─────────────────┐
+   │  Pod Replicas   │
+   │  (Load Balanced)│
+   │  • Pod 1        │
+   │  • Pod 2        │
+   └─────────────────┘
+
+═══════════════════════════════════════════════════════════════
+KEY FEATURES:
+• Single LoadBalancer IP for all services
+• Hostname-based routing
+• Rate limiting (100 req/sec)
+• WebSocket support
+• CORS enabled
+

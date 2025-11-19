@@ -16,9 +16,11 @@ metadata:
     # Enable CORS for API (if needed)
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
-    # WebSocket support for ArgoCD and API
+    # WebSocket support for API
+    nginx.ingress.kubernetes.io/websocket-services: "lms-api-service"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
 spec:
   ingressClassName: nginx
   # TLS/SSL Configuration (only works with real domains)

@@ -81,3 +81,4 @@ echo ""
 echo "Load test complete!"
 echo "Watch pods scale down after 60 seconds (HPA stabilization window)"
 
+

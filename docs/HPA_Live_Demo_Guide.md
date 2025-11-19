@@ -250,3 +250,4 @@ Even if scaling is slow, you can still:
 - Explain the scaling behavior
 - Show historical scaling events
 
+

@@ -61,14 +61,16 @@ spec:
             secretKeyRef:
               name: lms-secret
               key: SECRET_KEY
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 60
-          timeoutSeconds: 5
-          failureThreshold: 5
+        # Liveness probe disabled to reduce API calls
+        # If you want to re-enable it, uncomment below and adjust periodSeconds (e.g., 300 for 5 minutes)
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8000
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 300  # Check every 5 minutes
+        #   timeoutSeconds: 5
+        #   failureThreshold: 5
         readinessProbe:
           httpGet:
             path: /health

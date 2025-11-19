@@ -498,3 +498,4 @@ kubectl exec $POSTGRES_POD -- ls -la /var/lib/postgresql/data/pgdata
 kubectl logs -l app=postgres --tail=50
 ```
 
+

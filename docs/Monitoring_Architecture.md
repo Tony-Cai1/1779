@@ -235,3 +235,4 @@ scrape_configs:
 
 **Key Takeaway**: node-exporter and Promtail are **completely separate** - one handles metrics, the other handles logs. They don't communicate with each other.
 
+

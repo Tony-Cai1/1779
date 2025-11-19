@@ -207,6 +207,24 @@ data:
                 "values": ["value", "percent"]
               }
             }
+          },
+          {
+            "id": 10,
+            "title": "Suspicious/Attack Requests",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+            "targets": [
+              {
+                "expr": "sum by (method, status_code) (lms_api_suspicious_requests_total) or vector(0)",
+                "legendFormat": "{{method}} - {{status_code}}",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Suspicious Requests"},
+              {"format": "short"}
+            ],
+            "description": "Attack/scanner requests filtered from main metrics"
           }
         ]
     }
