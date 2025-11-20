@@ -46,7 +46,7 @@ echo "This will run for 60 seconds with 50 concurrent workers"
 echo ""
 
 # Run hey in background and capture PID
-hey -n 10000 -c 50 -z 30s "$API_URL/health" > /tmp/hey-output.log 2>&1 &
+hey -n 10000 -c 100 -z 10s "$API_URL/health" > /tmp/hey-output.log 2>&1 &
 HEY_PID=$!
 
 # Monitor pods scaling up
