@@ -17,44 +17,42 @@ data:
       - url: http://loki-service:3100/loki/api/v1/push
 
     scrape_configs:
-      # Scrape all pods in the default namespace
       - job_name: kubernetes-pods
         kubernetes_sd_configs:
           - role: pod
             namespaces:
               names:
                 - default
+        pipeline_stages:
+          - docker: {}
         relabel_configs:
-          # Only scrape pods that have logs
+          # Drop completed/failed pods
           - source_labels: [__meta_kubernetes_pod_phase]
             regex: (Succeeded|Failed)
             action: drop
           
-          # Add pod labels
+          # Map pod labels
           - action: labelmap
             regex: __meta_kubernetes_pod_label_(.+)
           
-          # Add namespace label
+          # Add standard labels
           - source_labels: [__meta_kubernetes_namespace]
             target_label: namespace
-          
-          # Add pod name label
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: pod
-          
-          # Add container name label
           - source_labels: [__meta_kubernetes_pod_container_name]
             target_label: container
-          
-          # Add node name label
           - source_labels: [__meta_kubernetes_pod_node_name]
             target_label: node
           
-          # Set the log path
-          - replacement: /var/log/pods/*$1/*.log
+          # Construct log path: /var/log/pods/{namespace}_{pod-name}_{pod-uid}/{container-name}/*.log
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_pod_name, __meta_kubernetes_pod_uid]
+            separator: _
+            target_label: __tmp_pod_path
+          - source_labels: [__tmp_pod_path, __meta_kubernetes_pod_container_name]
             separator: /
-            source_labels:
-              - __meta_kubernetes_pod_uid
-              - __meta_kubernetes_pod_container_name
+            target_label: __tmp_full_path
+          - source_labels: [__tmp_full_path]
+            regex: (.+)
+            replacement: /var/log/pods/$1/*.log
             target_label: __path__
-
