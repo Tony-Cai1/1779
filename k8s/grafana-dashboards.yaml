@@ -41,7 +41,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
             "targets": [
               {
-                "expr": "lms_api_requests_total",
+                "expr": "sum by (method, endpoint, status_code) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}} {{endpoint}}",
                 "refId": "A"
               }
@@ -58,7 +58,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
             "targets": [
               {
-                "expr": "lms_api_request_duration_seconds_sum / lms_api_request_duration_seconds_count",
+                "expr": "sum by (method, endpoint) (lms_api_request_duration_seconds_sum{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"}) / sum by (method, endpoint) (lms_api_request_duration_seconds_count{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}} {{endpoint}}",
                 "refId": "A"
               }
@@ -75,7 +75,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
             "targets": [
               {
-                "expr": "sum(lms_api_endpoint_requests_total) by (endpoint)",
+                "expr": "sum by (endpoint) (lms_api_endpoint_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{endpoint}}",
                 "refId": "A"
               }
@@ -92,7 +92,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
             "targets": [
               {
-                "expr": "sum(lms_api_requests_total) by (status_code)",
+                "expr": "sum by (status_code) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{status_code}}",
                 "refId": "A"
               }
@@ -109,7 +109,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
             "targets": [
               {
-                "expr": "lms_websocket_connections_active",
+                "expr": "sum(lms_websocket_connections_active)",
                 "legendFormat": "Active Connections",
                 "refId": "A"
               }
@@ -126,7 +126,7 @@ data:
             "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
             "targets": [
               {
-                "expr": "http_requests_total",
+                "expr": "sum by (method, handler) (http_requests_total{handler=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}} {{handler}}",
                 "refId": "A"
               }
@@ -143,7 +143,7 @@ data:
             "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24},
             "targets": [
               {
-                "expr": "sum(lms_api_endpoint_requests_total) by (endpoint)",
+                "expr": "sum by (endpoint) (lms_api_endpoint_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{endpoint}}",
                 "refId": "A"
               }
@@ -167,7 +167,7 @@ data:
             "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24},
             "targets": [
               {
-                "expr": "sum(lms_api_requests_total) by (method)",
+                "expr": "sum by (method) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{method}}",
                 "refId": "A"
               }
@@ -191,7 +191,7 @@ data:
             "gridPos": {"h": 8, "w": 8, "x": 16, "y": 24},
             "targets": [
               {
-                "expr": "sum(lms_api_requests_total) by (status_code)",
+                "expr": "sum by (status_code) (lms_api_requests_total{endpoint=~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
                 "legendFormat": "{{status_code}}",
                 "refId": "A"
               }
@@ -207,6 +207,29 @@ data:
                 "values": ["value", "percent"]
               }
             }
+          },
+          {
+            "id": 10,
+            "title": "Suspicious/Attack Requests",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+            "targets": [
+              {
+                "expr": "sum by (method, status_code) (lms_api_suspicious_requests_total) or vector(0)",
+                "legendFormat": "{{method}} - {{status_code}}",
+                "refId": "A"
+              },
+              {
+                "expr": "sum by (method, endpoint, status_code) (lms_api_requests_total{endpoint!~\"/health|/metrics|/docs|/openapi.*|/favicon.*|/auth/login|/books(/.*)?|/borrow|/return|/me/transactions|/admin/transactions|/users(/.*)?|/ws/admin\"})",
+                "legendFormat": "{{method}} {{endpoint}} - {{status_code}}",
+                "refId": "B"
+              }
+            ],
+            "yaxes": [
+              {"format": "short", "label": "Suspicious Requests"},
+              {"format": "short"}
+            ],
+            "description": "Attack/scanner requests filtered from main metrics. Includes both explicitly marked suspicious requests and any requests to non-legitimate endpoints."
           }
         ]
     }

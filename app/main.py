@@ -54,6 +54,89 @@ active_websocket_connections = Gauge(
     'Number of active WebSocket connections'
 )
 
+# Counter for suspicious/attack requests (separate from normal metrics)
+suspicious_request_counter = Counter(
+    'lms_api_suspicious_requests_total',
+    'Total number of suspicious/attack requests',
+    ['method', 'status_code']
+)
+
+# List of known attack patterns to filter from metrics
+ATTACK_PATTERNS = [
+    '../',  # Path traversal
+    '..\\',  # Windows path traversal
+    '/.env',
+    '/.git/',
+    '/etc/passwd',
+    '/cgi-bin/',
+    '/admin/config.php',
+    '/actuator/',
+    '/vendor/phpunit/',
+    '/ReportServer',
+    '/geoserver/',
+    '/xwiki/',
+    '/infusions/',
+    '/vkey/',
+    '/json/',
+    '/aaa',  # Common scanner patterns
+    '/aab',
+    '/.php',
+    'eval-stdin',
+    'stok=',
+    'downloads.php',
+    'login.cgi',
+    'server.cgi',
+    'cgi_main.cgi',
+    'luci/',
+    'SolrSearch',
+]
+
+# List of legitimate endpoints (always track these)
+LEGITIMATE_ENDPOINTS = [
+    '/health',
+    '/metrics',
+    '/docs',
+    '/openapi.json',
+    '/favicon.ico',
+    '/auth/login',
+    '/books',
+    '/borrow',
+    '/return',
+    '/me/transactions',
+    '/admin/transactions',
+    '/users',
+    '/ws/admin',
+]
+
+
+def is_suspicious_request(path: str) -> bool:
+    """
+    Check if a request path looks like an attack pattern.
+    Returns True if the path matches known attack patterns.
+    """
+    path_lower = path.lower()
+    
+    # Always track legitimate endpoints
+    for legit in LEGITIMATE_ENDPOINTS:
+        if path.startswith(legit):
+            return False
+    
+    # Check for attack patterns
+    for pattern in ATTACK_PATTERNS:
+        if pattern.lower() in path_lower:
+            return True
+    
+    # Check for excessive path length (likely attack)
+    if len(path) > 200:
+        return True
+    
+    # Check for excessive slashes (likely attack)
+    if path.count('/') > 20:
+        return True
+    
+    return False
+
+
 # Middleware to track API metrics
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
@@ -67,21 +150,31 @@ async def metrics_middleware(request: Request, call_next):
     method = request.method
     status_code = response.status_code
     
-    api_request_counter.labels(
-        method=method,
-        endpoint=endpoint,
-        status_code=status_code
-    ).inc()
-    
-    api_request_duration.labels(
-        method=method,
-        endpoint=endpoint
-    ).observe(duration)
-    
-    api_endpoint_counter.labels(
-        endpoint=endpoint,
-        method=method
-    ).inc()
+    # Filter out suspicious/attack requests from main metrics
+    if is_suspicious_request(endpoint):
+        # Track suspicious requests separately
+        suspicious_request_counter.labels(
+            method=method,
+            status_code=status_code
+        ).inc()
+        # Don't add to main metrics to keep dashboard clean
+    else:
+        # Track legitimate requests in main metrics
+        api_request_counter.labels(
+            method=method,
+            endpoint=endpoint,
+            status_code=status_code
+        ).inc()
+        
+        api_request_duration.labels(
+            method=method,
+            endpoint=endpoint
+        ).observe(duration)
+        
+        api_endpoint_counter.labels(
+            endpoint=endpoint,
+            method=method
+        ).inc()
     
     return response
 

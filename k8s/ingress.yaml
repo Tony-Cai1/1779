@@ -2,88 +2,86 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: lms-ingress
+  namespace: default
   annotations:
-    argocd.argoproj.io/tracking-id: lms-api:networking.k8s.io/Ingress:default/lms-ingress
+    # SSL/TLS Configuration (requires cert-manager)
+    # NOTE: SSL/TLS only works with real domains, not IP addresses or nip.io
+    # For nip.io or IP addresses, comment out cert-manager annotations and TLS section
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"  # Set to false for nip.io testing
+    # NGINX Ingress Controller annotations
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    # Rate limiting for API
     nginx.ingress.kubernetes.io/limit-rps: "100"
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+    # Enable CORS for API (if needed)
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    # WebSocket support for API
+    nginx.ingress.kubernetes.io/websocket-services: "lms-api-service"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Set to false for nip.io testing
-    nginx.ingress.kubernetes.io/websocket-services: lms-api-service
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
 spec:
   ingressClassName: nginx
+  # TLS/SSL Configuration (only works with real domains)
+  # For nip.io or IP addresses, comment out the tls section below
+  # To use nip.io: Replace "yourdomain.com" with "YOUR_IP.nip.io" (e.g., "api.123.45.67.89.nip.io")
+  # To use IP directly: Use just the IP (e.g., "123.45.67.89") and remove TLS section
+  tls:
+  - hosts:
+    - api.yourdomain.com
+    - grafana.yourdomain.com
+    - prometheus.yourdomain.com
+    - argocd.yourdomain.com
+    secretName: lms-tls-secret
   rules:
-  # Using nip.io for IP-based access (replace 157.230.69.194 with your actual LoadBalancer IP)
-  - host: api.157.230.69.194.nip.io
-    http:
-      paths:
-      - backend:
-          service:
-            name: lms-api-service
-            port:
-              number: 80
-        path: /
-        pathType: Prefix
-  - host: grafana.157.230.69.194.nip.io
-    http:
-      paths:
-      - backend:
-          service:
-            name: grafana-service
-            port:
-              number: 3000
-        path: /
-        pathType: Prefix
-  - host: prometheus.157.230.69.194.nip.io
-    http:
-      paths:
-      - backend:
-          service:
-            name: prometheus-service
-            port:
-              number: 9090
-        path: /
-        pathType: Prefix
-  # Keep original domain names if you have DNS configured
+  # LMS API
+  # Example with nip.io: api.123.45.67.89.nip.io (replace 123.45.67.89 with your Ingress IP)
   - host: api.yourdomain.com
     http:
       paths:
-      - backend:
+      - path: /
+        pathType: Prefix
+        backend:
           service:
             name: lms-api-service
             port:
               number: 80
-        path: /
-        pathType: Prefix
+  
+  # Grafana Dashboards
   - host: grafana.yourdomain.com
     http:
       paths:
-      - backend:
+      - path: /
+        pathType: Prefix
+        backend:
           service:
             name: grafana-service
             port:
               number: 3000
-        path: /
-        pathType: Prefix
+  
+  # Prometheus (optional - consider keeping internal)
   - host: prometheus.yourdomain.com
     http:
       paths:
-      - backend:
+      - path: /
+        pathType: Prefix
+        backend:
           service:
             name: prometheus-service
             port:
               number: 9090
-        path: /
+  
+  # ArgoCD (if you want external access)
+  # Note: ArgoCD requires special annotations for WebSocket support
+  - host: argocd.yourdomain.com
+    http:
+      paths:
+      - path: /
         pathType: Prefix
-  # TLS is optional for nip.io (can be removed if not needed)
-  # tls:
-  # - hosts:
-  #   - api.157.230.69.194.nip.io
-  #   - grafana.157.230.69.194.nip.io
-  #   - prometheus.157.230.69.194.nip.io
-  #   secretName: lms-tls-secret
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 80
 
