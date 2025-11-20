@@ -56,6 +56,8 @@ spec:
             - pg_isready
             - -U
             - lms_user
+            - -d
+            - lms_db
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
@@ -64,6 +66,8 @@ spec:
             - pg_isready
             - -U
             - lms_user
+            - -d
+            - lms_db
           initialDelaySeconds: 5
           periodSeconds: 5
       volumes:
