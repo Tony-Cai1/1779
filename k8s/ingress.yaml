@@ -1,0 +1,89 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lms-ingress
+  annotations:
+    argocd.argoproj.io/tracking-id: lms-api:networking.k8s.io/Ingress:default/lms-ingress
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"  # Set to false for nip.io testing
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Set to false for nip.io testing
+    nginx.ingress.kubernetes.io/websocket-services: lms-api-service
+spec:
+  ingressClassName: nginx
+  rules:
+  # Using nip.io for IP-based access (replace 157.230.69.194 with your actual LoadBalancer IP)
+  - host: api.157.230.69.194.nip.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: lms-api-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - host: grafana.157.230.69.194.nip.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: grafana-service
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
+  - host: prometheus.157.230.69.194.nip.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: prometheus-service
+            port:
+              number: 9090
+        path: /
+        pathType: Prefix
+  # Keep original domain names if you have DNS configured
+  - host: api.yourdomain.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: lms-api-service
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - host: grafana.yourdomain.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: grafana-service
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
+  - host: prometheus.yourdomain.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: prometheus-service
+            port:
+              number: 9090
+        path: /
+        pathType: Prefix
+  # TLS is optional for nip.io (can be removed if not needed)
+  # tls:
+  # - hosts:
+  #   - api.157.230.69.194.nip.io
+  #   - grafana.157.230.69.194.nip.io
+  #   - prometheus.157.230.69.194.nip.io
+  #   secretName: lms-tls-secret
+
