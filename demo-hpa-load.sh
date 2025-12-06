@@ -68,9 +68,9 @@ echo "Target: Scale pods to handle increased CPU/memory load"
 echo ""
 
 # Run hey in background and capture PID
-# Using /books endpoint which does database queries (more resource-intensive than /health)
+# Using /books/ endpoint which does database queries (more resource-intensive than /health)
 # Increased concurrency for better CPU load
-hey -n 30000 -c 150 -z 60s "$API_URL/books" > /tmp/hey-output.log 2>&1 &
+hey -n 30000 -c 150 -z 60s "$API_URL/books/" > /tmp/hey-output.log 2>&1 &
 HEY_PID=$!
 
 # Monitor pods scaling up
