@@ -62,13 +62,15 @@ echo ""
 
 # Generate load
 echo "Generating load to trigger HPA scaling..."
-echo "This will run for 60 seconds with 100 concurrent workers"
-echo "Target: Scale pods to handle increased CPU load"
+echo "This will run for 60 seconds with 150 concurrent workers"
+echo "Target endpoint: /books (database queries for realistic load)"
+echo "Target: Scale pods to handle increased CPU/memory load"
 echo ""
 
 # Run hey in background and capture PID
-# Increased concurrency and duration for better load
-hey -n 20000 -c 100 -z 60s "$API_URL/health" > /tmp/hey-output.log 2>&1 &
+# Using /books endpoint which does database queries (more resource-intensive than /health)
+# Increased concurrency for better CPU load
+hey -n 30000 -c 150 -z 60s "$API_URL/books" > /tmp/hey-output.log 2>&1 &
 HEY_PID=$!
 
 # Monitor pods scaling up
