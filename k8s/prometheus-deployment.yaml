@@ -103,7 +103,7 @@ metadata:
   labels:
     app: prometheus
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 9090
     targetPort: 9090
