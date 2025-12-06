@@ -2,6 +2,12 @@
 
 A FastAPI-based Library Management System with PostgreSQL database, supporting user authentication, book management, and borrowing/returning functionality.
 
+## Demo Video
+
+> 🎬 A short walkthrough of the system  
+> [Watch the demo](https://drive.google.com/file/d/1-iNg4KlFfG0xDrHzc98yhGio0UwPH7zP/view?usp=sharing)
+
+
 ## Features
 
 - **User Authentication**: JWT-based authentication with admin and member roles
