@@ -62,16 +62,23 @@ echo ""
 
 # Generate load
 echo "Generating load to trigger HPA scaling..."
-echo "This will run for 60 seconds with 150 concurrent workers"
-echo "Target endpoint: /books (database queries for realistic load)"
+echo "This will run for 60 seconds with 40 concurrent workers"
+echo "Target endpoint: mix of /health (75%) and /books/ (25%)"
 echo "Target: Scale pods to handle increased CPU/memory load"
 echo ""
 
-# Run hey in background and capture PID
-# Using /books/ endpoint which does database queries (more resource-intensive than /health)
-# Increased concurrency for better CPU load
-hey -n 30000 -c 150 -z 60s "$API_URL/books/" > /tmp/hey-output.log 2>&1 &
-HEY_PID=$!
+# Run multiple hey instances for mixed load
+# Main load on /health (30 workers) - keeps pods busy without overwhelming
+# Rate limit: ~100 requests/second to avoid 503s
+hey -c 30 -q 100 -z 60s "$API_URL/health" > /tmp/hey-health-output.log 2>&1 &
+HEY_PID1=$!
+
+# Some load on /books/ (10 workers) - adds database load
+# Rate limit: ~30 requests/second for database queries
+hey -c 10 -q 30 -z 60s "$API_URL/books/" > /tmp/hey-books-output.log 2>&1 &
+HEY_PID2=$!
+
+HEY_PID=$HEY_PID1
 
 # Monitor pods scaling up
 echo "Monitoring pod scaling (press Ctrl+C to stop early)..."
@@ -103,9 +110,12 @@ for i in {1..12}; do
     fi
 done
 
-# Stop hey if still running
-if kill -0 $HEY_PID 2>/dev/null; then
-    kill $HEY_PID 2>/dev/null
+# Stop hey processes if still running
+if kill -0 $HEY_PID1 2>/dev/null; then
+    kill $HEY_PID1 2>/dev/null
+fi
+if kill -0 $HEY_PID2 2>/dev/null; then
+    kill $HEY_PID2 2>/dev/null
 fi
 
 echo ""
@@ -119,9 +129,14 @@ kubectl get hpa lms-api-hpa
 
 echo ""
 echo "=== Load Test Summary ==="
-if [ -f /tmp/hey-output.log ]; then
-    echo "Request statistics:"
-    tail -20 /tmp/hey-output.log | grep -E "(Total:|Requests/sec|Response time)" || tail -5 /tmp/hey-output.log
+if [ -f /tmp/hey-health-output.log ]; then
+    echo "Health endpoint statistics:"
+    tail -20 /tmp/hey-health-output.log | grep -E "(Total:|Requests/sec|Response time)" || tail -5 /tmp/hey-health-output.log
+fi
+if [ -f /tmp/hey-books-output.log ]; then
+    echo ""
+    echo "Books endpoint statistics:"
+    tail -20 /tmp/hey-books-output.log | grep -E "(Total:|Requests/sec|Response time)" || tail -5 /tmp/hey-books-output.log
 fi
 
 echo ""
