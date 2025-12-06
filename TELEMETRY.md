@@ -9,6 +9,7 @@ The telemetry stack consists of:
 - **Grafana**: Visualization and dashboards
 - **Custom Metrics**: API request rates, durations, endpoint usage, and WebSocket connections
 - **Cluster Metrics**: CPU, memory, network, and pod usage
+- **Node Exporter**: Node-level system metrics
 
 ## Prerequisites
 
@@ -36,29 +37,18 @@ kubectl get pods -l app=prometheus
 kubectl get svc prometheus-service
 ```
 
-### 2. Deploy Loki and Promtail (Log Aggregation)
+### 2. Deploy Node Exporter (Optional - System Metrics)
 
-Loki collects and stores logs from all pods, while Promtail collects logs from each node.
+Node Exporter collects node-level system metrics (CPU, memory, disk, network).
 
 ```bash
-# Deploy Loki configuration
-kubectl apply -f k8s/loki-configmap.yaml
-
-# Deploy Loki server
-kubectl apply -f k8s/loki-deployment.yaml
-
-# Deploy Promtail configuration
-kubectl apply -f k8s/promtail-configmap.yaml
-
-# Deploy Promtail DaemonSet (runs on each node)
-kubectl apply -f k8s/promtail-daemonset.yaml
+# Deploy Node Exporter DaemonSet (runs on each node)
+kubectl apply -f k8s/node-exporter-daemonset.yaml
 ```
 
-Verify Loki and Promtail are running:
+Verify Node Exporter is running:
 ```bash
-kubectl get pods -l app=loki
-kubectl get pods -l app=promtail
-kubectl get svc loki-service
+kubectl get pods -l app=node-exporter
 ```
 
 ### 3. Deploy Grafana
@@ -83,12 +73,6 @@ Verify Grafana is running:
 ```bash
 kubectl get pods -l app=grafana
 kubectl get svc grafana-service
-```
-
-**Note:** After deploying Loki, update Grafana datasources to include Loki:
-```bash
-kubectl apply -f k8s/grafana-datasources.yaml
-kubectl rollout restart deployment/grafana
 ```
 
 ### 4. Access the Services
@@ -127,63 +111,23 @@ Then open http://localhost:3000 in your browser.
 - Username: `admin`
 - Password: `admin123` (change this in production!)
 
-## Logs Collection
+## Viewing Logs
 
-### Loki Log Queries
+To view logs from your pods, use `kubectl`:
 
-Loki uses LogQL (Log Query Language) to query logs. Here are some useful queries:
+```bash
+# View logs from a specific pod
+kubectl logs <pod-name>
 
-#### View All Logs from LMS API Pods
-```logql
-{app="lms-api"}
+# Follow logs in real-time
+kubectl logs -f <pod-name>
+
+# View logs from all API pods
+kubectl logs -l app=lms-api
+
+# View logs from previous container instance
+kubectl logs <pod-name> --previous
 ```
-
-#### View Logs by Pod Name
-```logql
-{pod="lms-api-xxxxx-xxxxx"}
-```
-
-#### Search for Errors
-```logql
-{app="lms-api"} |= "error"
-```
-
-#### Search for Specific Text
-```logql
-{app="lms-api"} |= "Admin WS connected"
-```
-
-#### Filter by Container
-```logql
-{container="api"}
-```
-
-#### Logs with Time Range
-```logql
-{namespace="default"} | json | line_format "{{.message}}"
-```
-
-#### Count Logs by Level
-```logql
-sum(count_over_time({app="lms-api"} | json | level="error" [5m]))
-```
-
-### Viewing Logs in Grafana
-
-1. **Open Grafana** → **Explore** (compass icon in left sidebar)
-2. **Select Loki** as the data source
-3. **Enter a LogQL query** (examples above)
-4. **Select time range** (top right)
-5. **Click "Run query"**
-
-### Log Labels
-
-Promtail automatically adds these labels to all logs:
-- `pod`: Pod name
-- `namespace`: Kubernetes namespace
-- `container`: Container name
-- `node`: Node name
-- `app`: App label (if present)
 
 ## Metrics Collected
 
@@ -470,19 +414,15 @@ kubectl delete -f k8s/grafana-secret.yaml
 kubectl delete -f k8s/prometheus-deployment.yaml
 kubectl delete -f k8s/prometheus-configmap.yaml
 
-# Remove Loki and Promtail
-kubectl delete -f k8s/promtail-daemonset.yaml
-kubectl delete -f k8s/promtail-configmap.yaml
-kubectl delete -f k8s/loki-deployment.yaml
-kubectl delete -f k8s/loki-configmap.yaml
+# Remove Node Exporter (if deployed)
+kubectl delete -f k8s/node-exporter-daemonset.yaml
 ```
 
 ## Additional Resources
 
 - [Prometheus Documentation](https://prometheus.io/docs/)
 - [Grafana Documentation](https://grafana.com/docs/)
-- [Loki Documentation](https://grafana.com/docs/loki/latest/)
-- [LogQL Query Language](https://grafana.com/docs/loki/latest/logql/)
 - [PromQL Query Language](https://prometheus.io/docs/prometheus/latest/querying/basics/)
 - [FastAPI Prometheus Instrumentator](https://github.com/trallnag/prometheus-fastapi-instrumentator)
+- [Node Exporter](https://github.com/prometheus/node_exporter)
 
